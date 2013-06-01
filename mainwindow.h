@@ -32,6 +32,8 @@ private slots:
     void on_transferCheckBox_stateChanged(int arg1);
     void fillAccountCombo();
 
+    void on_lineEditFilter_textChanged(const QString &arg1);
+
 private:
     Ui::MainWindow *ui;
     QSqlDatabase db;

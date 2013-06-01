@@ -334,3 +334,11 @@ void MainWindow::fillAccountCombo()
     }
 }
 
+/*
+ *  sets a word filter on transactions
+ */
+void MainWindow::on_lineEditFilter_textChanged(const QString &arg1)
+{
+    //i think i'm going to have to subclass sqlfilterproxymodel filteredTransactions to do a custom filter on 2 columns
+    // see http://www.qtcentre.org/threads/24267-QSortFilterProxyModel-setFilterRegExp-for-more-than-1-column
+}
