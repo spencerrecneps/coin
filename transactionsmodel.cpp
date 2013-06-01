@@ -121,8 +121,7 @@ bool TransactionsModel::addTransactionRelation(int &transactionId, int &relateId
 QVariant TransactionsModel::data(const QModelIndex &item, int role) const
 {
     QVariant d = QSqlQueryModel::data(item, role);
-//    if (item.column() == 5 || item.column() == 6)  //check for currency column
-    if (item.column() > 4)  //check for currency column
+    if (item.column() == 5 || item.column() == 6)  //check for currency column
     {
         if(role == Qt::TextAlignmentRole)
         {
@@ -133,6 +132,21 @@ QVariant TransactionsModel::data(const QModelIndex &item, int role) const
             QLocale us(QLocale::English,QLocale::UnitedStates);
             return QVariant(us.toCurrencyString(d.toDouble(),us.currencySymbol()));
         }
+        /*
+         *STILL NEED TO CONSIDER HOW TO ACCOMPLISH THIS, WE HAVE THE RELATED ACCOUNT
+         *INCLUDED IN THE TABLE MODEL, BUT HOW TO ACCESS ITS DATA FROM HERE...
+         *
+         *else if (item.column() == 4)  //check for comment (to add transfer information)
+         *{
+         *    if (role == Qt::DisplayRole)
+         *    {
+         *        QString s = "Transfer (";
+         *        s.append(d.toString());
+         *        s.append(")");
+         *        return QVariant(s);
+         *    }
+         *}
+        */
         else
         {
             return d;
@@ -145,23 +159,5 @@ QVariant TransactionsModel::data(const QModelIndex &item, int role) const
 }
 
 
-
-//STILL NEED TO CONSIDER HOW TO ACCOMPLISH THIS, WE HAVE THE RELATED ACCOUNT
-//INCLUDED IN THE TABLE MODEL, BUT HOW TO ACCESS ITS DATA FROM HERE...
-
-//    else if (item.column() == 4)  //check for comment (to add transfer information)
-//    {
-//        if (role == Qt::DisplayRole)
-//        {
-//            QString s = "Transfer (";
-//            s.append(d.toString());
-//            s.append(")");
-//            return QVariant(s);
-//        }
-//        else
-//        {
-//            return d;
-//        }
-//    }
 
 
