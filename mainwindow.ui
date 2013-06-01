@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>796</width>
+    <width>797</width>
     <height>711</height>
    </rect>
   </property>
@@ -18,6 +18,12 @@
     <normaloff>../../../../usr/share/icons/coin_48.png</normaloff>../../../../usr/share/icons/coin_48.png</iconset>
   </property>
   <widget class="QWidget" name="centralWidget">
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+     <horstretch>1</horstretch>
+     <verstretch>1</verstretch>
+    </sizepolicy>
+   </property>
    <widget class="Line" name="line">
     <property name="geometry">
      <rect>
@@ -26,6 +32,12 @@
       <width>781</width>
       <height>20</height>
      </rect>
+    </property>
+    <property name="sizePolicy">
+     <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+      <horstretch>0</horstretch>
+      <verstretch>0</verstretch>
+     </sizepolicy>
     </property>
     <property name="orientation">
      <enum>Qt::Horizontal</enum>
@@ -40,7 +52,7 @@
       <height>57</height>
      </rect>
     </property>
-    <layout class="QGridLayout" name="gridLayout_2" columnstretch="1,8,2,1,4" columnminimumwidth="0,0,0,0,0">
+    <layout class="QGridLayout" name="gridLayout_2" columnstretch="1,8,2,1,6" columnminimumwidth="0,0,0,0,0">
      <item row="1" column="2">
       <widget class="QLineEdit" name="lineEditAmount"/>
      </item>
@@ -142,6 +154,12 @@
     <layout class="QGridLayout" name="gridLayout_3" columnstretch="1,2" columnminimumwidth="0,0">
      <item row="1" column="0">
       <widget class="QTreeWidget" name="treeAccounts">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
        <property name="dragDropMode">
         <enum>QAbstractItemView::NoDragDrop</enum>
        </property>
@@ -241,6 +259,12 @@
      </item>
      <item row="1" column="1">
       <widget class="QTableView" name="tableTransactions">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
        <property name="contextMenuPolicy">
         <enum>Qt::CustomContextMenu</enum>
        </property>
@@ -281,7 +305,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>796</width>
+     <width>797</width>
      <height>25</height>
     </rect>
    </property>
@@ -297,5 +321,70 @@
   <tabstop>treeAccounts</tabstop>
  </tabstops>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>lineEditAmount</sender>
+   <signal>returnPressed()</signal>
+   <receiver>btnAccept</receiver>
+   <slot>click()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>519</x>
+     <y>680</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>554</x>
+     <y>680</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>btnAccept</sender>
+   <signal>clicked()</signal>
+   <receiver>transferCheckBox</receiver>
+   <slot>hide()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>540</x>
+     <y>667</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>675</x>
+     <y>636</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>btnAccept</sender>
+   <signal>clicked()</signal>
+   <receiver>comboAccounts</receiver>
+   <slot>hide()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>540</x>
+     <y>667</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>675</x>
+     <y>667</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>lineEditTransactionInfo</sender>
+   <signal>returnPressed()</signal>
+   <receiver>lineEditAmount</receiver>
+   <slot>setFocus()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>284</x>
+     <y>667</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>481</x>
+     <y>667</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>

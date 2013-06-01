@@ -3,7 +3,8 @@
 #include "QMessageBox"
 #include "QtDebug"
 
-#define pathDB "/shared/coin/coin.db"
+//#define pathDB "/shared/coin/coin.db"
+#define pathDB "/home/spencer/dev/coin/coin.db"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -48,9 +49,10 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->tableTransactions->setModel(filteredTransactions);
 
-    //hide the pk_uid and id_account columns
+    //hide the pk_uid, id_account, and related account columns
     ui->tableTransactions->hideColumn(0);
     ui->tableTransactions->hideColumn(1);
+    ui->tableTransactions->hideColumn(2);
 
     //NEED TO CREATE DELEGATE FOR TABLE CELL FORMATTING
     //SEE http://www.youtube.com/watch?v=EJf-vZ6FQfc
@@ -200,7 +202,7 @@ void MainWindow::on_treeAccounts_itemSelectionChanged()
 }
 
 /*
- *returns the pk_uid of the account selected in the account tree view
+ *  returns the pk_uid of the account selected in the account tree view
  */
 int MainWindow::getAccountId()
 {
@@ -215,7 +217,7 @@ int MainWindow::getAccountId()
 }
 
 /*
- *returns the pk_uid of the transaction selected in the transactions table
+ *  returns the pk_uid of the transaction selected in the transactions table
  */
 int MainWindow::getTransactionId()
 {
@@ -228,6 +230,9 @@ int MainWindow::getTransactionId()
     return transactionId;
 }
 
+/*
+ *  right click menu for transactions
+ */
 void MainWindow::on_tableTransactions_customContextMenuRequested(const QPoint &pos)
 {
     //test for a click in empty table space, or for no selection
@@ -294,6 +299,9 @@ void MainWindow::on_tableTransactions_customContextMenuRequested(const QPoint &p
     }
 }
 
+/*
+ *  toggle checkbox for a transfer
+ */
 void MainWindow::on_transferCheckBox_stateChanged(int arg1)
 {
     if (arg1 == 0)  //if the user unchecked the transfer
@@ -308,6 +316,9 @@ void MainWindow::on_transferCheckBox_stateChanged(int arg1)
     }
 }
 
+/*
+ *  fills the account combobox with accounts for a transfer transaction
+ */
 void MainWindow::fillAccountCombo()
 {
     //query the accounts
@@ -322,3 +333,4 @@ void MainWindow::fillAccountCombo()
         ui->comboAccounts->addItem(q.value(1).toString(),q.value(0));
     }
 }
+

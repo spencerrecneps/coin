@@ -18,7 +18,7 @@ Qt::ItemFlags TransactionsModel::flags(const QModelIndex &index) const
 
 bool TransactionsModel::setData(const QModelIndex &index, const QVariant &value, int /*role*/)
 {
-    if (index.column() < 2 || index.column() == 5) {
+    if (index.column() < 3 || index.column() == 6) {
         return false;
     }
     QModelIndex primaryKeyIndex = QSqlQueryModel::index(index.row(),0);
@@ -27,13 +27,13 @@ bool TransactionsModel::setData(const QModelIndex &index, const QVariant &value,
     clear();
 
     bool success;
-    if (index.column() == 2) {
+    if (index.column() == 3) {
         success = setDate(pk_uid,value.toString());
     }
-    else if (index.column() == 3) {
+    else if (index.column() == 4) {
         success = setComment(pk_uid,value.toString());
     }
-    else if (index.column() == 4) {
+    else if (index.column() == 5) {
         double amt;
         amt = value.toFloat();
         success = setAmount(pk_uid,amt);
@@ -47,13 +47,14 @@ bool TransactionsModel::setData(const QModelIndex &index, const QVariant &value,
 
 void TransactionsModel::refresh()
 {
-    setQuery("SELECT pk_uid, id_account, date_trans, comment, amount, total FROM trans_total ORDER BY date_trans, pk_uid");
+    setQuery("SELECT pk_uid, id_account, relate_account, date_trans, comment, amount, total FROM trans_total ORDER BY date_trans, pk_uid");
     setHeaderData(0,Qt::Horizontal,QObject::tr("pk_uid"));
     setHeaderData(1,Qt::Horizontal,QObject::tr("id_account"));
-    setHeaderData(2,Qt::Horizontal,QObject::tr("Date"));
-    setHeaderData(3,Qt::Horizontal,QObject::tr("Comment"));
-    setHeaderData(4,Qt::Horizontal,QObject::tr("Amount"));
-    setHeaderData(5,Qt::Horizontal,QObject::tr("Total"));
+    setHeaderData(2,Qt::Horizontal,QObject::tr("relate_account"));
+    setHeaderData(3,Qt::Horizontal,QObject::tr("Date"));
+    setHeaderData(4,Qt::Horizontal,QObject::tr("Comment"));
+    setHeaderData(5,Qt::Horizontal,QObject::tr("Amount"));
+    setHeaderData(6,Qt::Horizontal,QObject::tr("Total"));
 }
 
 bool TransactionsModel::setDate(int pk_uid, const QString &transactionDate)
@@ -76,11 +77,25 @@ bool TransactionsModel::setComment(int pk_uid, const QString &transactionComment
 
 bool TransactionsModel::setAmount(int pk_uid, double &transactionAmount)
 {
+    bool success=false;
     QSqlQuery q;
-    q.prepare("UPDATE trans SET amount= ? WHERE pk_uid = ?");
+
+    //first update the selected transaction
+    q.prepare("UPDATE trans SET amount = ? WHERE pk_uid = ?");
     q.addBindValue(transactionAmount);
     q.addBindValue(pk_uid);
-    return q.exec();
+    success = q.exec();
+
+    if (!success) return success;  //exit if the transaction failed
+
+    //next update the related transaction (if exists)
+    q.clear();
+    q.prepare("UPDATE trans SET amount = ? WHERE id_relate = ?");
+    q.addBindValue(-1 * transactionAmount);
+    q.addBindValue(pk_uid);
+    success = q.exec();
+
+    return success;
 }
 
 bool TransactionsModel::addTransaction(int &accountId, QString &transactionDate,QString &transactionComment,double &transactionAmount)
@@ -106,7 +121,8 @@ bool TransactionsModel::addTransactionRelation(int &transactionId, int &relateId
 QVariant TransactionsModel::data(const QModelIndex &item, int role) const
 {
     QVariant d = QSqlQueryModel::data(item, role);
-    if (item.column() > 3)  //check for currency column
+//    if (item.column() == 5 || item.column() == 6)  //check for currency column
+    if (item.column() > 4)  //check for currency column
     {
         if(role == Qt::TextAlignmentRole)
         {
@@ -116,7 +132,6 @@ QVariant TransactionsModel::data(const QModelIndex &item, int role) const
         {
             QLocale us(QLocale::English,QLocale::UnitedStates);
             return QVariant(us.toCurrencyString(d.toDouble(),us.currencySymbol()));
-//            return QVariant(QString::number(d.toDouble(),'f',2));
         }
         else
         {
@@ -128,3 +143,25 @@ QVariant TransactionsModel::data(const QModelIndex &item, int role) const
         return d;
     }
 }
+
+
+
+//STILL NEED TO CONSIDER HOW TO ACCOMPLISH THIS, WE HAVE THE RELATED ACCOUNT
+//INCLUDED IN THE TABLE MODEL, BUT HOW TO ACCESS ITS DATA FROM HERE...
+
+//    else if (item.column() == 4)  //check for comment (to add transfer information)
+//    {
+//        if (role == Qt::DisplayRole)
+//        {
+//            QString s = "Transfer (";
+//            s.append(d.toString());
+//            s.append(")");
+//            return QVariant(s);
+//        }
+//        else
+//        {
+//            return d;
+//        }
+//    }
+
+
