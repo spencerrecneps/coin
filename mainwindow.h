@@ -39,7 +39,8 @@ private:
     QSqlDatabase db;
     QStandardItemModel *accountsTree;
     TransactionsModel *transactions;
-    QSortFilterProxyModel *filteredTransactions;
+    QSortFilterProxyModel *accountFilter;
+    QSortFilterProxyModel *commentFilter;
 };
 
 #endif // MAINWINDOW_H

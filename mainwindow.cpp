@@ -37,27 +37,28 @@ MainWindow::MainWindow(QWidget *parent) :
     transactions->refresh();
 
     //set up the filter
-    filteredTransactions = new QSortFilterProxyModel(this);
-    filteredTransactions->setDynamicSortFilter(true);
-    filteredTransactions->setSourceModel(transactions);
+    accountFilter = new QSortFilterProxyModel(this);
+    commentFilter = new QSortFilterProxyModel(this);
+    accountFilter->setFilterKeyColumn(1);
+    commentFilter->setFilterKeyColumn(4);
+    accountFilter->setDynamicSortFilter(true);
+    commentFilter->setDynamicSortFilter(true);
+    accountFilter->setSourceModel(transactions);
+    commentFilter->setSourceModel(accountFilter);
 
     if (ui->treeAccounts->selectedItems().count() == 1)
     {
-        filteredTransactions->setFilterKeyColumn(1);
-        filteredTransactions->setFilterFixedString(QString::number(getAccountId()));
+        accountFilter->setFilterFixedString(QString::number(getAccountId()));
     }
 
-    ui->tableTransactions->setModel(filteredTransactions);
+//    ui->tableTransactions->setModel(filteredTransactions);
+
+    ui->tableTransactions->setModel(commentFilter);
 
     //hide the pk_uid, id_account, and related account columns
     ui->tableTransactions->hideColumn(0);
     ui->tableTransactions->hideColumn(1);
     ui->tableTransactions->hideColumn(2);
-
-    //NEED TO CREATE DELEGATE FOR TABLE CELL FORMATTING
-    //SEE http://www.youtube.com/watch?v=EJf-vZ6FQfc
-    //SEE http://qt-project.org/doc/qt-4.8/qstyleditemdelegate.html
-
 
     //select the first account (so that there is a selection active)
     ui->treeAccounts->setCurrentItem(ui->treeAccounts->itemAt(0,0));
@@ -185,13 +186,15 @@ void MainWindow::on_btnAccept_clicked()
 
     //refresh the table
     transactions->refresh();
+
+    //scroll to the bottom
+    ui->tableTransactions->scrollToBottom();
 }
 
 void MainWindow::on_treeAccounts_itemSelectionChanged()
 {
     transactions->refresh();
-    filteredTransactions->setFilterKeyColumn(1);
-    filteredTransactions->setFilterFixedString(QString::number(getAccountId()));
+    accountFilter->setFilterFixedString(QString::number(getAccountId()));
 
     //if the transfer combobox is showing, update the accounts to reflect the change
     if (ui->transferCheckBox->checkState() == Qt::Checked)
@@ -199,6 +202,9 @@ void MainWindow::on_treeAccounts_itemSelectionChanged()
         ui->comboAccounts->clear();
         fillAccountCombo();
     }
+
+    //scroll to the bottom of the transactions
+    ui->tableTransactions->scrollToBottom();
 }
 
 /*
@@ -339,6 +345,5 @@ void MainWindow::fillAccountCombo()
  */
 void MainWindow::on_lineEditFilter_textChanged(const QString &arg1)
 {
-    //i think i'm going to have to subclass sqlfilterproxymodel filteredTransactions to do a custom filter on 2 columns
-    // see http://www.qtcentre.org/threads/24267-QSortFilterProxyModel-setFilterRegExp-for-more-than-1-column
+    commentFilter->setFilterRegExp(arg1);
 }
