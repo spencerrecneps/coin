@@ -3,6 +3,13 @@
 #include "QMessageBox"
 #include "QtDebug"
 
+#define col_pk_uid 0
+#define col_id_account 1
+#define col_relate_account 2
+#define col_date 3
+#define col_comment 4
+#define col_amount 5
+#define col_total 6
 //#define pathDB "/shared/coin/coin.db"
 #define pathDB "/home/spencer/dev/coin/coin.db"
 
@@ -56,9 +63,19 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->tableTransactions->setModel(commentFilter);
 
     //hide the pk_uid, id_account, and related account columns
-    ui->tableTransactions->hideColumn(0);
-    ui->tableTransactions->hideColumn(1);
-    ui->tableTransactions->hideColumn(2);
+    //and size the remaining columns appropriately
+    ui->tableTransactions->hideColumn(col_pk_uid);
+    ui->tableTransactions->hideColumn(col_id_account);
+    ui->tableTransactions->hideColumn(col_relate_account);
+    QHeaderView *h = ui->tableTransactions->horizontalHeader();
+    h->setStretchLastSection(false);
+    h->setResizeMode(col_date,QHeaderView::Fixed);
+    h->setResizeMode(col_comment,QHeaderView::Stretch);  //make the comments column stretch to fill leftover space
+    h->setResizeMode(col_amount,QHeaderView::Fixed);
+    h->setResizeMode(col_total,QHeaderView::Fixed);
+    h->resizeSection(col_date,100);
+    h->resizeSection(col_amount,100);
+    h->resizeSection(col_total,120);
 
     //select the first account (so that there is a selection active)
     ui->treeAccounts->setCurrentItem(ui->treeAccounts->itemAt(0,0));
@@ -131,8 +148,7 @@ void MainWindow::on_btnAccept_clicked()
         //perform the first part of the transfer. if it fails, kick out an error message and exit routine
         if(!transactions->addTransaction(accountId,transactionDate,transactionComment,transactionAmount))
         {
-            QMessageBox::critical(0, qApp->tr("Transaction Error"),
-                qApp->tr("Could not add transaction."), QMessageBox::Cancel);
+            transactionFailedError(qApp->tr("Could not add transaction."));
             return;
         }
 
@@ -144,8 +160,7 @@ void MainWindow::on_btnAccept_clicked()
         //perform the second part of the transfer. if it fails, kick out an error message and exit routine
         if(!transactions->addTransaction(transferAccountId,transactionDate,transactionComment,transferAmount))
         {
-            QMessageBox::critical(0, qApp->tr("Transaction Error"),
-                qApp->tr("Could not add transaction."), QMessageBox::Cancel);
+            transactionFailedError(qApp->tr("Could not add transaction."));
             return;
         }
 
@@ -158,13 +173,13 @@ void MainWindow::on_btnAccept_clicked()
 
         if(!transactions->addTransactionRelation(firstTransactionId,secondTransactionId))
         {
-            transactionFailedError();
+            transactionFailedError(qApp->tr("Could not add transaction."));
             return;
         }
 
         if(!transactions->addTransactionRelation(secondTransactionId,firstTransactionId))
         {
-            transactionFailedError();
+            transactionFailedError(qApp->tr("Could not add transaction."));
             return;
         }
     }
@@ -173,8 +188,8 @@ void MainWindow::on_btnAccept_clicked()
         //perform the transaction. if it fails, kick out an error message
         if(!transactions->addTransaction(accountId,transactionDate,transactionComment,transactionAmount))
         {
-            QMessageBox::critical(0, qApp->tr("Transaction Error"),
-                qApp->tr("Could not add transaction."), QMessageBox::Cancel);
+            transactionFailedError(qApp->tr("Could not add transaction."));
+            return;
         }
     }
 
@@ -225,6 +240,11 @@ int MainWindow::getAccountId()
     }
 }
 
+QString MainWindow::getAccountName()
+{
+    return ui->treeAccounts->selectedItems().first()->data(0,Qt::DisplayRole).toString();
+}
+
 /*
  *  returns the pk_uid of the transaction selected in the transactions table
  */
@@ -241,7 +261,7 @@ int MainWindow::getTransactionId()
 int MainWindow::getTransactionId(int rowNum)
 {
     int transactionId;
-    transactionId = ui->tableTransactions->model()->data(ui->tableTransactions->model()->index(rowNum,0)).toInt();
+    transactionId = ui->tableTransactions->model()->data(ui->tableTransactions->model()->index(rowNum,col_pk_uid)).toInt();
     return transactionId;
 }
 
@@ -310,7 +330,7 @@ void MainWindow::on_tableTransactions_customContextMenuRequested(const QPoint &p
 
         //set up the selection model and get the pk_uid column of the selected rows
         rowsSelectionModel = ui->tableTransactions->selectionModel();
-        rowsList = rowsSelectionModel->selectedRows(0);
+        rowsList = rowsSelectionModel->selectedRows(col_pk_uid);
 
         //iterate through the selection and perform the selected task on each
         //selected transaction
@@ -324,7 +344,7 @@ void MainWindow::on_tableTransactions_customContextMenuRequested(const QPoint &p
             {
                 if(!transactions->deleteTransaction(transactionId))
                 {
-                    transactionFailedError();
+                    transactionFailedError(qApp->tr("Could not delete transaction."));
                     return;
                 }
             }
@@ -334,7 +354,7 @@ void MainWindow::on_tableTransactions_customContextMenuRequested(const QPoint &p
 
                 if (!transactions->moveTransaction(accountId, transactionId))
                 {
-                    transactionFailedError();
+                    transactionFailedError(qApp->tr("Could not move transaction."));
                     return;
                 }
             }
@@ -387,9 +407,47 @@ void MainWindow::on_lineEditFilter_textChanged(const QString &arg1)
     commentFilter->setFilterRegExp(arg1);
 }
 
-void MainWindow::transactionFailedError()
+void MainWindow::transactionFailedError(QString errMessage)
 {
     QMessageBox::critical(0, qApp->tr("Transaction Error"),
-        qApp->tr("Could not add transaction."), QMessageBox::Cancel);
+        errMessage, QMessageBox::Cancel);
     return;
+}
+
+void MainWindow::on_btnAddAccount_clicked()
+{
+
+}
+
+void MainWindow::on_btnDeleteAccount_clicked()
+{
+    QString selectedAccountName = getAccountName();
+    QString warningMessage = qApp->tr("This will delete account ");
+    warningMessage.append(selectedAccountName);
+    if (QMessageBox::warning(0,qApp->tr("Delete Account"),
+                         warningMessage,
+                         QMessageBox::Ok | QMessageBox::Cancel)
+            == QMessageBox::Ok)
+    {
+        int accountId = getAccountId();
+
+        //remove any transactions associated with this account
+        QSqlQuery q;
+        q.prepare("DELETE FROM trans WHERE id_account = ?");
+        q.addBindValue(accountId);
+        if(!q.exec())
+        {
+            transactionFailedError(qApp->tr("Could not delete account"));
+        }
+
+        //remove the account
+        q.clear();
+        q.prepare("DELETE FROM account WHERE pk_uid = ?");
+        q.addBindValue(accountId);
+        if(!q.exec())
+        {
+            transactionFailedError(qApp->tr("Could not delete account"));
+        }
+    }
+    refreshAccountTree();
 }

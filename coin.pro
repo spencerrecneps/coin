@@ -14,9 +14,12 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-    transactionsmodel.cpp
+    transactionsmodel.cpp \
+    dialognewaccount.cpp
 
 HEADERS  += mainwindow.h \
-    transactionsmodel.h
+    transactionsmodel.h \
+    dialognewaccount.h
 
-FORMS    += mainwindow.ui
+FORMS    += mainwindow.ui \
+    dialognewaccount.ui
