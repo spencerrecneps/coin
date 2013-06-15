@@ -72,7 +72,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::refreshAccountTree()
 {
-    int previousSelectionId = getAccountId();  //save the currently-selected pk_uid. if no selection, returns -1
+//    int previousSelectionId = getAccountId();  //save the currently-selected pk_uid. if no selection, returns -1
     ui->treeAccounts->clear();
 
     QSqlQuery *parentAccounts;
@@ -158,15 +158,13 @@ void MainWindow::on_btnAccept_clicked()
 
         if(!transactions->addTransactionRelation(firstTransactionId,secondTransactionId))
         {
-            QMessageBox::critical(0, qApp->tr("Transaction Error"),
-                qApp->tr("Could not add transaction."), QMessageBox::Cancel);
+            transactionFailedError();
             return;
         }
 
         if(!transactions->addTransactionRelation(secondTransactionId,firstTransactionId))
         {
-            QMessageBox::critical(0, qApp->tr("Transaction Error"),
-                qApp->tr("Could not add transaction."), QMessageBox::Cancel);
+            transactionFailedError();
             return;
         }
     }
@@ -183,6 +181,11 @@ void MainWindow::on_btnAccept_clicked()
     //clear the amount and comment lines
     ui->lineEditAmount->clear();
     ui->lineEditTransactionInfo->clear();
+
+    //clear the transfer checkbox and hide the combobox
+    ui->transferCheckBox->setChecked(false);
+    ui->comboAccounts->clear();
+    ui->comboAccounts->hide();
 
     //refresh the table
     transactions->refresh();
@@ -228,11 +231,17 @@ int MainWindow::getAccountId()
 int MainWindow::getTransactionId()
 {
     int rowId;
-    int transactionId;
-
     rowId = ui->tableTransactions->selectionModel()->currentIndex().row();
-    transactionId = ui->tableTransactions->model()->data(ui->tableTransactions->model()->index(rowId,0)).toInt();
+    return getTransactionId(rowId);
+}
 
+/*
+ *  returns the pk_uid of the transaction at the given row position in the transactions table
+ */
+int MainWindow::getTransactionId(int rowNum)
+{
+    int transactionId;
+    transactionId = ui->tableTransactions->model()->data(ui->tableTransactions->model()->index(rowNum,0)).toInt();
     return transactionId;
 }
 
@@ -242,7 +251,7 @@ int MainWindow::getTransactionId()
 void MainWindow::on_tableTransactions_customContextMenuRequested(const QPoint &pos)
 {
     //test for a click in empty table space, or for no selection
-    if (ui->tableTransactions->selectionModel()->selectedRows().count() != 1 || !ui->tableTransactions->indexAt(pos).isValid())
+    if (ui->tableTransactions->selectionModel()->selectedRows().count() < 1 || !ui->tableTransactions->indexAt(pos).isValid())
     {
         return;
     }
@@ -251,15 +260,29 @@ void MainWindow::on_tableTransactions_customContextMenuRequested(const QPoint &p
     QPoint globalPos = ui->tableTransactions->mapToGlobal(pos);
     QMenu *accountsMenu;
     QSqlQuery q;
+    QString moveText;
+    QString deleteText;
+
+    //set the menu item text based on the number of selected transactions
+    if (ui->tableTransactions->selectionModel()->selectedRows().count() == 1)
+    {
+        moveText = "Move transaction";
+        deleteText = "Delete this transaction";
+    }
+    else
+    {
+        moveText = "Move transactions";
+        deleteText = "Delete these transactions";
+    }
 
     //create the menus
     transactionsMenu = new QMenu(this);
-    accountsMenu = new QMenu("Move transaction",transactionsMenu);
+    accountsMenu = new QMenu(moveText,transactionsMenu);
     transactionsMenu->addMenu(accountsMenu);
 
     //add the delete transaction action
     QAction *deleteAction;
-    deleteAction = new QAction("Delete this transaction",transactionsMenu);
+    deleteAction = new QAction(deleteText,transactionsMenu);
     deleteAction->setData("delete");
     transactionsMenu->addAction(deleteAction);
 
@@ -277,28 +300,44 @@ void MainWindow::on_tableTransactions_customContextMenuRequested(const QPoint &p
         accountsMenu->addAction(a);
     }
 
-    //show the menu
-    QAction *selectedItem = transactionsMenu->exec(globalPos);
-    if (selectedItem)
-    {
-        int accountId = selectedItem->data().toInt();
-        int transactionId = getTransactionId();
+    //show the menu and get the selected menu item
+    QAction *selectedMenuItem = transactionsMenu->exec(globalPos);
 
-        if(selectedItem->data() == "delete")  //if the user clicked on "delete this transaction"
+    if (selectedMenuItem)
+    {
+        QItemSelectionModel *rowsSelectionModel;
+        QModelIndexList rowsList;
+
+        //set up the selection model and get the pk_uid column of the selected rows
+        rowsSelectionModel = ui->tableTransactions->selectionModel();
+        rowsList = rowsSelectionModel->selectedRows(0);
+
+        //iterate through the selection and perform the selected task on each
+        //selected transaction
+        QList<QModelIndex>::Iterator i;
+        for (i = rowsList.begin(); i != rowsList.end(); ++i)
         {
-            QSqlQuery deleteQuery;
-            deleteQuery.prepare("DELETE FROM trans WHERE pk_uid=? OR id_relate=?");
-            deleteQuery.addBindValue(transactionId);
-            deleteQuery.addBindValue(transactionId);
-            deleteQuery.exec();
-        }
-        else //the user selected an account to move the transaction to
-        {
-            QSqlQuery updateQuery;
-            updateQuery.prepare("UPDATE trans SET id_account=? WHERE pk_uid=?");
-            updateQuery.addBindValue(accountId);
-            updateQuery.addBindValue(transactionId);
-            updateQuery.exec();
+            int transactionId;
+            transactionId = i->data().toInt();
+
+            if(selectedMenuItem->data() == "delete")  //if the user clicked on "delete this transaction"
+            {
+                if(!transactions->deleteTransaction(transactionId))
+                {
+                    transactionFailedError();
+                    return;
+                }
+            }
+            else    //the user selected an account to move the transaction to
+            {
+                int accountId = selectedMenuItem->data().toInt();
+
+                if (!transactions->moveTransaction(accountId, transactionId))
+                {
+                    transactionFailedError();
+                    return;
+                }
+            }
         }
 
         transactions->refresh();
@@ -346,4 +385,11 @@ void MainWindow::fillAccountCombo()
 void MainWindow::on_lineEditFilter_textChanged(const QString &arg1)
 {
     commentFilter->setFilterRegExp(arg1);
+}
+
+void MainWindow::transactionFailedError()
+{
+    QMessageBox::critical(0, qApp->tr("Transaction Error"),
+        qApp->tr("Could not add transaction."), QMessageBox::Cancel);
+    return;
 }

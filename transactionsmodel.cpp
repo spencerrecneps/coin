@@ -152,6 +152,24 @@ bool TransactionsModel::addTransactionRelation(int &transactionId, int &relateId
     return q.exec();
 }
 
+bool TransactionsModel::deleteTransaction(int &transactionId)
+{
+    QSqlQuery q;
+    q.prepare("DELETE FROM trans WHERE pk_uid=? OR id_relate=?");
+    q.addBindValue(transactionId);
+    q.addBindValue(transactionId);
+    return q.exec();
+}
+
+bool TransactionsModel::moveTransaction(int &accountId, int &transactionId)
+{
+    QSqlQuery updateQuery;
+    updateQuery.prepare("UPDATE trans SET id_account=? WHERE pk_uid =?");
+    updateQuery.addBindValue(accountId);
+    updateQuery.addBindValue(transactionId);
+    return updateQuery.exec();
+}
+
 QVariant TransactionsModel::data(const QModelIndex &item, int role) const
 {
     QVariant d = QSqlQueryModel::data(item, role);

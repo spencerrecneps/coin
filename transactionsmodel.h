@@ -12,6 +12,8 @@ public:
     bool setData(const QModelIndex &index, const QVariant &value, int role);
     bool addTransaction(int &accountId, QString &transactionDate,QString &transactionComment,double &transactionAmount);
     bool addTransactionRelation(int &transactionId, int &relateId);
+    bool deleteTransaction(int &transactionId);
+    bool moveTransaction(int &accountId, int &transactionId);
     void refresh();
     QVariant data(const QModelIndex &item, int role) const;
 

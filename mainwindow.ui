@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>797</width>
+    <width>1019</width>
     <height>711</height>
    </rect>
   </property>
@@ -48,7 +48,7 @@
      <rect>
       <x>10</x>
       <y>600</y>
-      <width>781</width>
+      <width>1001</width>
       <height>57</height>
      </rect>
     </property>
@@ -147,11 +147,11 @@
      <rect>
       <x>10</x>
       <y>10</y>
-      <width>781</width>
+      <width>1001</width>
       <height>581</height>
      </rect>
     </property>
-    <layout class="QGridLayout" name="gridLayout_3" columnstretch="1,0">
+    <layout class="QGridLayout" name="gridLayout_3" columnstretch="1,3">
      <item row="1" column="0">
       <widget class="QTreeWidget" name="treeAccounts">
        <property name="sizePolicy">
@@ -304,7 +304,7 @@
         <bool>true</bool>
        </property>
        <property name="selectionMode">
-        <enum>QAbstractItemView::SingleSelection</enum>
+        <enum>QAbstractItemView::ExtendedSelection</enum>
        </property>
        <property name="selectionBehavior">
         <enum>QAbstractItemView::SelectRows</enum>
@@ -328,7 +328,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>797</width>
+     <width>1019</width>
      <height>25</height>
     </rect>
    </property>
@@ -358,38 +358,6 @@
     <hint type="destinationlabel">
      <x>554</x>
      <y>680</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>btnAccept</sender>
-   <signal>clicked()</signal>
-   <receiver>transferCheckBox</receiver>
-   <slot>hide()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>540</x>
-     <y>667</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>675</x>
-     <y>636</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>btnAccept</sender>
-   <signal>clicked()</signal>
-   <receiver>comboAccounts</receiver>
-   <slot>hide()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>540</x>
-     <y>667</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>675</x>
-     <y>667</y>
     </hint>
    </hints>
   </connection>
