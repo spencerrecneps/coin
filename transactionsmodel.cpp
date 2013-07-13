@@ -9,6 +9,7 @@
 #define col_comment 4
 #define col_amount 5
 #define col_total 6
+#define col_reconciled 7
 
 TransactionsModel::TransactionsModel(QObject *parent) :
     QSqlQueryModel(parent)
@@ -29,10 +30,11 @@ Qt::ItemFlags TransactionsModel::flags(const QModelIndex &index) const
 
 bool TransactionsModel::setData(const QModelIndex &index, const QVariant &value, int /*role*/)
 {
-    if (index.column() == col_pk_uid
+    if (       index.column() == col_pk_uid
             || index.column() == col_id_account
             || index.column() == col_relate_account
-            || index.column() == col_total)
+            || index.column() == col_total
+            || index.column() == col_reconciled)
     {
         return false;
     }
@@ -62,7 +64,7 @@ bool TransactionsModel::setData(const QModelIndex &index, const QVariant &value,
 
 void TransactionsModel::refresh()
 {
-    setQuery("SELECT pk_uid, id_account, relate_account, date_trans, comment, amount, total FROM trans_total ORDER BY date_trans, pk_uid");
+    setQuery("SELECT pk_uid, id_account, relate_account, date_trans, comment, amount, total, reconciled FROM trans_total ORDER BY date_trans, pk_uid");
     setHeaderData(col_pk_uid,Qt::Horizontal,QObject::tr("pk_uid"));
     setHeaderData(col_id_account,Qt::Horizontal,QObject::tr("id_account"));
     setHeaderData(col_relate_account,Qt::Horizontal,QObject::tr("relate_account"));
@@ -70,6 +72,7 @@ void TransactionsModel::refresh()
     setHeaderData(col_comment,Qt::Horizontal,QObject::tr("Comment"));
     setHeaderData(col_amount,Qt::Horizontal,QObject::tr("Amount"));
     setHeaderData(col_total,Qt::Horizontal,QObject::tr("Total"));
+    setHeaderData(col_reconciled,Qt::Horizontal,QObject::tr("Reconciled"));
 }
 
 bool TransactionsModel::setDate(int pk_uid, const QString &transactionDate)
@@ -132,10 +135,27 @@ bool TransactionsModel::setAmount(int pk_uid, double &transactionAmount)
     return true;
 }
 
+bool TransactionsModel::setReconcile(int pk_uid, bool reconcileState)
+{
+    QSqlQuery q;
+
+    if(reconcileState)  //reconciled should be set to true
+    {
+        q.prepare("UPDATE trans SET reconciled = 1 WHERE pk_uid = ?");
+    }
+    else                //reconciled should be set to false
+    {
+        q.prepare("UPDATE trans SET reconciled = 0 WHERE pk_uid = ?");
+    }
+    q.addBindValue(pk_uid);
+    if(!q.exec()) return false;
+    return true;
+}
+
 bool TransactionsModel::addTransaction(int &accountId, QString &transactionDate,QString &transactionComment,double &transactionAmount)
 {
     QSqlQuery q;
-    q.prepare("INSERT INTO trans (id_account, date_trans, comment, amount) VALUES (?,?,?,?)");
+    q.prepare("INSERT INTO trans (id_account, date_trans, comment, amount, reconciled) VALUES (?,?,?,?,0)");
     q.addBindValue(accountId);
     q.addBindValue(transactionDate);
     q.addBindValue(transactionComment);

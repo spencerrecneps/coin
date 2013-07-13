@@ -10,8 +10,9 @@
 #define col_comment 4
 #define col_amount 5
 #define col_total 6
-//#define pathDB "/shared/coin/coin.db"
-#define pathDB "/home/spencer/dev/coin/coin.db"
+#define col_reconciled 7
+#define pathDB "/shared/coin/coin.db"
+//#define pathDB "/home/spencer/dev/coin/coin/coin.db"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -43,36 +44,39 @@ MainWindow::MainWindow(QWidget *parent) :
     transactions = new TransactionsModel(this);
     transactions->refresh();
 
-    //set up the filter
+    //set up the filters
     accountFilter = new QSortFilterProxyModel(this);
+    reconcileFilter = new QSortFilterProxyModel(this);
     commentFilter = new QSortFilterProxyModel(this);
-    accountFilter->setFilterKeyColumn(1);
-    commentFilter->setFilterKeyColumn(4);
+    accountFilter->setFilterKeyColumn(col_id_account);
+    reconcileFilter->setFilterKeyColumn(col_reconciled);
+    commentFilter->setFilterKeyColumn(col_comment);
     accountFilter->setDynamicSortFilter(true);
+    reconcileFilter->setDynamicSortFilter(true);
     commentFilter->setDynamicSortFilter(true);
     accountFilter->setSourceModel(transactions);
-    commentFilter->setSourceModel(accountFilter);
+    reconcileFilter->setSourceModel(accountFilter);
+    commentFilter->setSourceModel(reconcileFilter);
 
-    if (ui->treeAccounts->selectedItems().count() == 1)
+    if (ui->treeAccounts->selectedItems().count() == 1)     //filter the table based on the selection in the accounts tree
     {
         accountFilter->setFilterFixedString(QString::number(getAccountId()));
     }
-
-//    ui->tableTransactions->setModel(filteredTransactions);
-
-    ui->tableTransactions->setModel(commentFilter);
+    reconcileFilter->setFilterFixedString(QString::number(0));             //filter the table for unreconciled transactions only
+    ui->tableTransactions->setModel(commentFilter);         //filter the table for tag searches in the box
 
     //hide the pk_uid, id_account, and related account columns
     //and size the remaining columns appropriately
     ui->tableTransactions->hideColumn(col_pk_uid);
     ui->tableTransactions->hideColumn(col_id_account);
     ui->tableTransactions->hideColumn(col_relate_account);
+    ui->tableTransactions->hideColumn(col_reconciled);
     QHeaderView *h = ui->tableTransactions->horizontalHeader();
     h->setStretchLastSection(false);
-    h->setResizeMode(col_date,QHeaderView::Fixed);
-    h->setResizeMode(col_comment,QHeaderView::Stretch);  //make the comments column stretch to fill leftover space
-    h->setResizeMode(col_amount,QHeaderView::Fixed);
-    h->setResizeMode(col_total,QHeaderView::Fixed);
+    h->setSectionResizeMode(col_date,QHeaderView::Fixed);
+    h->setSectionResizeMode(col_comment,QHeaderView::Stretch);  //make the comments column stretch to fill leftover space
+    h->setSectionResizeMode(col_amount,QHeaderView::Fixed);
+    h->setSectionResizeMode(col_total,QHeaderView::Fixed);
     h->resizeSection(col_date,100);
     h->resizeSection(col_amount,100);
     h->resizeSection(col_total,120);
@@ -206,7 +210,7 @@ void MainWindow::on_btnAccept_clicked()
     transactions->refresh();
 
     //scroll to the bottom
-    ui->tableTransactions->scrollToBottom();
+    //ui->tableTransactions->scrollToBottom();
 }
 
 void MainWindow::on_treeAccounts_itemSelectionChanged()
@@ -222,7 +226,7 @@ void MainWindow::on_treeAccounts_itemSelectionChanged()
     }
 
     //scroll to the bottom of the transactions
-    ui->tableTransactions->scrollToBottom();
+    //ui->tableTransactions->scrollToBottom();
 }
 
 /*
@@ -282,6 +286,7 @@ void MainWindow::on_tableTransactions_customContextMenuRequested(const QPoint &p
     QSqlQuery q;
     QString moveText;
     QString deleteText;
+    QString reconcileText;
 
     //set the menu item text based on the number of selected transactions
     if (ui->tableTransactions->selectionModel()->selectedRows().count() == 1)
@@ -294,6 +299,7 @@ void MainWindow::on_tableTransactions_customContextMenuRequested(const QPoint &p
         moveText = "Move transactions";
         deleteText = "Delete these transactions";
     }
+    reconcileText = "Mark as reconciled";  //not dependent on number of transactions selected
 
     //create the menus
     transactionsMenu = new QMenu(this);
@@ -305,6 +311,12 @@ void MainWindow::on_tableTransactions_customContextMenuRequested(const QPoint &p
     deleteAction = new QAction(deleteText,transactionsMenu);
     deleteAction->setData("delete");
     transactionsMenu->addAction(deleteAction);
+
+    //add the reconcile action
+    QAction *reconcileAction;
+    reconcileAction = new QAction(reconcileText,transactionsMenu);
+    reconcileAction->setData("reconcile");
+    transactionsMenu->addAction(reconcileAction);
 
     //query the accounts
     q.prepare("SELECT pk_uid, account_name FROM account WHERE pk_uid <> ? ORDER BY account_name");
@@ -348,6 +360,14 @@ void MainWindow::on_tableTransactions_customContextMenuRequested(const QPoint &p
                     return;
                 }
             }
+            else if(selectedMenuItem->data() == "reconcile")
+            {
+                if(!transactions->setReconcile(transactionId,true))
+                {
+                    transactionFailedError(qApp->tr("Could not set as reconciled."));
+                    return;
+                }
+            }
             else    //the user selected an account to move the transaction to
             {
                 int accountId = selectedMenuItem->data().toInt();
@@ -361,6 +381,7 @@ void MainWindow::on_tableTransactions_customContextMenuRequested(const QPoint &p
         }
 
         transactions->refresh();
+        //ui->tableTransactions->scrollToBottom();
     }
 }
 

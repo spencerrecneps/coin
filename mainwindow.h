@@ -38,6 +38,7 @@ private:
     QStandardItemModel *accountsTree;
     TransactionsModel *transactions;
     QSortFilterProxyModel *accountFilter;
+    QSortFilterProxyModel *reconcileFilter;
     QSortFilterProxyModel *commentFilter;
     int getAccountId();
     QString getAccountName();

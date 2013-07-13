@@ -10,6 +10,7 @@ public:
     explicit TransactionsModel(QObject *parent = 0);
     Qt::ItemFlags flags(const QModelIndex &index) const;
     bool setData(const QModelIndex &index, const QVariant &value, int role);
+    bool setReconcile(int pk_uid, bool reconcileState);
     bool addTransaction(int &accountId, QString &transactionDate,QString &transactionComment,double &transactionAmount);
     bool addTransactionRelation(int &transactionId, int &relateId);
     bool deleteTransaction(int &transactionId);
