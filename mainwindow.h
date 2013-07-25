@@ -17,8 +17,6 @@ class MainWindow : public QMainWindow
 {
     Q_OBJECT
 
-void refreshAccountTree();
-
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
@@ -46,6 +44,8 @@ private:
     int getTransactionId(int rowNum);
     void fillAccountCombo();
     void transactionFailedError(QString errMessage);
+    void refreshAccountTree();
+    void refreshTransactions();
 };
 
 #endif // MAINWINDOW_H
