@@ -19,7 +19,8 @@ SOURCES += main.cpp\
 
 HEADERS  += mainwindow.h \
     transactionsmodel.h \
-    dialognewaccount.h
+    dialognewaccount.h \
+    definitions.h
 
 FORMS    += mainwindow.ui \
     dialognewaccount.ui
