@@ -203,7 +203,7 @@ void MainWindow::on_btnAccept_clicked()
     refreshTransactions();
 
     //scroll to the bottom
-    //ui->tableTransactions->scrollToBottom();
+    ui->tableTransactions->scrollToBottom();
 }
 
 void MainWindow::on_treeAccounts_itemSelectionChanged()
@@ -219,7 +219,7 @@ void MainWindow::on_treeAccounts_itemSelectionChanged()
     }
 
     //scroll to the bottom of the transactions
-    //ui->tableTransactions->scrollToBottom();
+    ui->tableTransactions->scrollToBottom();
 }
 
 /*
