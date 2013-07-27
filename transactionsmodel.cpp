@@ -65,6 +65,10 @@ void TransactionsModel::refresh()
     setHeaderData(col_amount,Qt::Horizontal,QObject::tr("Amount"));
     setHeaderData(col_total,Qt::Horizontal,QObject::tr("Total"));
     setHeaderData(col_reconciled,Qt::Horizontal,QObject::tr("Reconciled"));
+    while(canFetchMore())
+    {
+        fetchMore();
+    }
 }
 
 bool TransactionsModel::setDate(int pk_uid, const QString &transactionDate)

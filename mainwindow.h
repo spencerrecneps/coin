@@ -45,7 +45,6 @@ private:
     void fillAccountCombo();
     void transactionFailedError(QString errMessage);
     void refreshAccountTree();
-    void refreshTransactions();
 };
 
 #endif // MAINWINDOW_H

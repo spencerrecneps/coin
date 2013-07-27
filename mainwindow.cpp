@@ -35,7 +35,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     //set up transactions table
     transactions = new TransactionsModel(this);
-    refreshTransactions();
+    transactions->refresh();
 
     //set up the filters
     accountFilter = new QSortFilterProxyModel(this);
@@ -200,7 +200,7 @@ void MainWindow::on_btnAccept_clicked()
     ui->comboAccounts->hide();
 
     //refresh the table
-    refreshTransactions();
+    transactions->refresh();
 
     //scroll to the bottom
     ui->tableTransactions->scrollToBottom();
@@ -208,7 +208,7 @@ void MainWindow::on_btnAccept_clicked()
 
 void MainWindow::on_treeAccounts_itemSelectionChanged()
 {
-    refreshTransactions();
+    transactions->refresh();
     accountFilter->setFilterFixedString(QString::number(getAccountId()));
 
     //if the transfer combobox is showing, update the accounts to reflect the change
@@ -373,7 +373,7 @@ void MainWindow::on_tableTransactions_customContextMenuRequested(const QPoint &p
             }
         }
 
-        refreshTransactions();
+        transactions->refresh();
         ui->tableTransactions->scrollToBottom();
     }
 }
@@ -464,11 +464,4 @@ void MainWindow::on_btnDeleteAccount_clicked()
         }
     }
     refreshAccountTree();
-}
-
-void MainWindow::refreshTransactions()
-{
-    transactions->refresh();
-    while (transactions->canFetchMore())
-        transactions->fetchMore();
 }
