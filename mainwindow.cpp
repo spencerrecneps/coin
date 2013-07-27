@@ -55,7 +55,6 @@ MainWindow::MainWindow(QWidget *parent) :
     {
         accountFilter->setFilterFixedString(QString::number(getAccountId()));
     }
-    reconcileFilter->setFilterFixedString(QString::number(0));             //filter the table for unreconciled transactions only
     ui->tableTransactions->setModel(commentFilter);         //filter the table for tag searches in the box
 
     //hide the pk_uid, id_account, and related account columns
@@ -464,4 +463,17 @@ void MainWindow::on_btnDeleteAccount_clicked()
         }
     }
     refreshAccountTree();
+}
+
+void MainWindow::on_actionReconciled_triggered(bool checked)
+{
+    if (checked)
+    {
+        reconcileFilter->setFilterFixedString(QString::number(0));             //filter the table for unreconciled transactions only
+    }
+    else
+    {
+        reconcileFilter->setFilterFixedString(QString());
+    }
+    return;
 }

@@ -29,6 +29,7 @@ private slots:
     void on_lineEditFilter_textChanged(const QString &arg1);
     void on_btnAddAccount_clicked();
     void on_btnDeleteAccount_clicked();
+    void on_actionReconciled_triggered(bool checked);
 
 private:
     Ui::MainWindow *ui;
