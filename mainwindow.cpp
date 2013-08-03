@@ -3,6 +3,7 @@
 #include "QMessageBox"
 #include "QtDebug"
 #include "definitions.h"
+#include <QLocale>
 
 //#define pathDB "/shared/coin/coin.db"
 #define pathDB "/home/spencer/dev/coin/coin/coin.db"
@@ -16,6 +17,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->dateEdit->setDate(QDate::currentDate());  //set the date to today
     ui->lineEditAmount->setValidator(new QDoubleValidator(-INFINITY,INFINITY,2));  //force 2-decimal number in amount field
     ui->comboAccounts->hide();  //hide the transfer to account combobox
+    ui->lblFilterTotal->hide();  //hide the filter total
 
     //set the db and open
     db = QSqlDatabase::addDatabase("QSQLITE");
@@ -219,6 +221,12 @@ void MainWindow::on_treeAccounts_itemSelectionChanged()
 
     //scroll to the bottom of the transactions
     ui->tableTransactions->scrollToBottom();
+
+    //reset filtered amount label if visible
+    if ( ! ui->lblFilterTotal->isHidden() )
+    {
+        setFilterAmount();
+    }
 }
 
 /*
@@ -418,6 +426,15 @@ void MainWindow::fillAccountCombo()
 void MainWindow::on_lineEditFilter_textChanged(const QString &arg1)
 {
     commentFilter->setFilterRegExp(arg1);
+    if (0 < arg1.length())
+    {
+        ui->lblFilterTotal->show();
+        setFilterAmount();
+    }
+    else
+    {
+        ui->lblFilterTotal->hide();
+    }
 }
 
 void MainWindow::transactionFailedError(QString errMessage)
@@ -476,4 +493,34 @@ void MainWindow::on_actionReconciled_triggered(bool checked)
         reconcileFilter->setFilterFixedString(QString());
     }
     return;
+}
+
+float MainWindow::sumColumn(int column)
+{
+    float sum = 0;
+
+    //iterate rows
+    for(int i = 0; i < commentFilter->rowCount(); ++i)
+    {
+        float f;
+        QString t;
+        QModelIndex idx;
+
+        idx = commentFilter->index(i,column,QModelIndex());
+        f = ui->tableTransactions->model()->data(idx,Qt::EditRole).toFloat();  //  <--- the problem is with the userrole
+        sum = sum + f;
+    }
+
+    qDebug() << sum;
+    return sum;
+}
+
+void MainWindow::setFilterAmount()
+{
+    QString amt;
+    QLocale us(QLocale::English,QLocale::UnitedStates);
+
+    amt = "Filter total: ";
+    amt.append(us.toCurrencyString(sumColumn(col_amount),us.currencySymbol()));
+    ui->lblFilterTotal->setText(amt);
 }

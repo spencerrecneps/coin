@@ -46,6 +46,8 @@ private:
     void fillAccountCombo();
     void transactionFailedError(QString errMessage);
     void refreshAccountTree();
+    float sumColumn(int column);
+    void setFilterAmount();
 };
 
 #endif // MAINWINDOW_H
