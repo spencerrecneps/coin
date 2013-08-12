@@ -511,7 +511,6 @@ float MainWindow::sumColumn(int column)
         sum = sum + f;
     }
 
-    qDebug() << sum;
     return sum;
 }
 
